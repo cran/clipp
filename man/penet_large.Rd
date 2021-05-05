@@ -5,7 +5,7 @@
 \alias{penet_large}
 \title{A penetrance matrix relating the phenotypes in \code{dat_large} to three genotypes}
 \format{
-A matrix with 10,000 rows (corresponding to persons) and 3
+A matrix with 10,002 rows (corresponding to persons) and 3
 columns (corresponding to genotypes).
 }
 \source{
@@ -17,7 +17,7 @@ penet_large
 \description{
 A matrix relating the phenotypes of \code{dat_large} to the three unphased
 genotypes of a single biallelic, autosomal genetic locus.
-The element \code{penet_small[i,j]} is the conditional probability of the
+The element \code{penet_large[i,j]} is the conditional probability of
 the phenotypes (i.e. \code{sex}, \code{aff} and \code{age}) of the person
 in row \code{i} of \code{dat_large}, given that
 his or her genotype is \code{j} (here labelling the genotypes as \verb{1, 2, 3},

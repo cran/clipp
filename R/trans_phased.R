@@ -1,8 +1,9 @@
-#' The transmission matrix for a single genetic locus
+#' The transmission matrix for phased genotypes
 #'
 #' A function to calculate the transmission matrix for a single autosomal
-#' genetic locus with an arbitrary number of alleles and unphased genotypes,
-#' based on Mendel's laws of inheritance.
+#' genetic locus with an arbitrary number of alleles and phased genotypes,
+#' based on Mendel's laws of inheritance.  Phased genotypes can be used to
+#' investigate parent-of-origin effects, e.g. see (van Vliet et al., 2011).
 #'
 #' @param n_alleles A positive integer, interpreted as the number of possible
 #' alleles at the genetic locus.
@@ -13,13 +14,14 @@
 #' this matrix (and converts it to a data frame) to make the output more
 #' easily understood by humans.
 #'
-#' @details When `annotate` is `FALSE`, this function returns a matrix of
-#' genetic transmission probabilities, whose rows corresponding to the possible
-#' joint parental genotypes and whose columns corresponding to the possible
-#' offspring genotypes.  There are `ngeno = n_alleles * (n_alleles + 1) / 2` possible
-#' unphased genotypes, and by choosing an order on these genotypes (which can be
+#' @details When `annotate` is `FALSE`, a matrix of genetic transmission
+#' probabilities is returned, with rows corresponding to the possible joint
+#' parental genotypes and columns corresponding to the possible offspring
+#' genotypes.
+#' There are `ngeno = n_alleles^2` possible phased genotypes,
+#' and by choosing an order on these genotypes (which can be
 #' viewed by setting `annotate` to `TRUE`, see below)
-#' we can label the set of possible genotypes as `1:ngeno`.
+#' we can label the set of possible phased genotypes as `1:ngeno`.
 #' Then the `(ngeno * gm + gf - ngeno, go)`th element of the outputted matrix is
 #' the conditional probability that a person has genotype `go`, given that his
 #' or her biological mother and father have genotypes `gm` and `gf`,
@@ -28,8 +30,10 @@
 #' When `annotate` is `TRUE`, the function converts this matrix to a data frame,
 #' adds column names giving the offspring genotype corresponding to each
 #' column, and adds columns `gm` and `gf` describing the parental genotypes
-#' corresponding to each row.  In this data frame, genotypes are written
-#' in the usual form `1/1, 1/2, ...` for the alleles `1:n_alleles`.
+#' corresponding to each row.
+#' In this data frame, phased genotypes are written in the usual form
+#' `1|1, 1|2, ...` for the alleles `1:n_alleles`, where `a|b` means the
+#' maternal allele is `a` and the paternal allele is `b`.
 #'
 #' Note that if the output of this function is to be used as the `trans`
 #' argument of \code{\link{pedigree_loglikelihood}} then the `annotate` option
@@ -40,37 +44,34 @@
 #' (if `annotate` is `FALSE`), or a data frame that is an annotated version of
 #' this matrix (if `annotate` is `TRUE`).
 #'
+#' @examples
+#' # The transition matrix for a biallelic, autosomal locus with phased genotypes
+#' trans_phased(2)
+#' trans_phased(2, annotate = TRUE)
+#'
+#' @references
+#' van Vliet CM, Dowty JG, van Vliet JL, et al. Dependence of colorectal cancer
+#' risk on the parent-of-origin of mutations in DNA mismatch repair genes.
+#' Hum Mutat. 2011;32(2):207-212.
+#'
 #' @export
 #'
-#' @examples
-#' # The transition matrix for a biallelic, autosomal locus with unphased genotypes
-#' trans_monogenic(2)
-#' trans_monogenic(2, annotate = TRUE)
-#'
-trans_monogenic <- function(n_alleles, annotate = FALSE) {
+trans_phased <- function(n_alleles, annotate = FALSE) {
   # Calculate the transmission matrix for a single, autosomal genetic locus with
-  # n_alleles alleles and unphased genotypes
-  # n_alleles <- 3
+  # n_alleles alleles and phased genotypes
+  # n_alleles <- 2; annotate <- T
 
-  # List the possible (unordered) genotypes geno.list
-  # The possible alleles are 1:n_alleles and the possible genotypes are
-  # 1:(n_alleles*(n_alleles+1)/2),
-  # with genotype i corresponds to the unphased genotype geno.list[i]
+  # List the possible phased genotypes geno.list
+  # The possible alleles are 1:n_alleles and the possible phased genotypes are
+  # 1:(n_alleles^2), with genotype i corresponds to the phased genotype geno.list[i]
   # eg <- expand.grid(1:n_alleles,1:n_alleles)
   eg <- cbind(rep(1:n_alleles, each = n_alleles),
               rep(1:n_alleles, times = n_alleles))
-  f <- function(x) {
-    if (x[1] > x[2]) {
-      return("")
-    } else {
-      return(paste(x, collapse = "/"))
-    }
-  }
+  f <- function(x) {  return(paste(x, collapse = "|"))  }
   geno.list <- apply(eg, 1, f)
-  geno.list <- geno.list[geno.list != ""]
   ng <- length(geno.list)
   geno.list
-  ng - n_alleles * (n_alleles + 1) / 2
+  ng - n_alleles^2
 
   # Calculate the transmission matrix
   trans <- matrix(0, ng^2, ng)
@@ -79,14 +80,10 @@ trans_monogenic <- function(n_alleles, annotate = FALSE) {
   for (gm in 1:ng) {
     for (gf in 1:ng) {
       # gm <- 1; gf <- 3
-      am.list <- strsplit(geno.list[gm], "/", fixed = TRUE)[[1]]
-      af.list <- strsplit(geno.list[gf], "/", fixed = TRUE)[[1]]
+      am.list <- strsplit(geno.list[gm], "|", fixed = TRUE)[[1]]
+      af.list <- strsplit(geno.list[gf], "|", fixed = TRUE)[[1]]
       geno.off <- function(am, af) {
-        if (am <= af) {
-          go <- paste(c(am, af), collapse = "/")
-        } else {
-          go <- paste(c(af, am), collapse = "/")
-        }
+        go <- paste(c(am, af), collapse = "|")
         return(which(geno.list == go))
       }
       for (i in 1:2) {

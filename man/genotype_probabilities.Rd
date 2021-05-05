@@ -2,15 +2,17 @@
 % Please edit documentation in R/genotype_probabilities.R
 \name{genotype_probabilities}
 \alias{genotype_probabilities}
-\title{Calculate the genotype probabilities of a target person}
+\title{Calculate genotype probabilities for a target person}
 \usage{
-genotype_probabilities(target_ID, fam, geno_freq, trans, penet)
+genotype_probabilities(target, fam, geno_freq, trans, penet, monozyg = NULL)
 }
 \arguments{
-\item{target_ID}{The individual identifier (\code{indiv}) of the person in
-the pedigree \code{fam} whose genotype probabilities are sought.}
+\item{target}{The individual identifier (an element of \code{fam$indiv})
+of the person in the pedigree \code{fam} whose genotype probabilities are being
+sought.}
 
-\item{fam}{A data frame with rows corresponding to people and columns
+\item{fam}{A data frame specifying the family's relationship structure,
+with rows corresponding to people and columns
 corresponding to the following variables (other variables can be included
 but will be ignored), which will be coerced to \code{character} type:
 \itemize{
@@ -23,46 +25,75 @@ in \code{fam}.
 }}
 
 \item{geno_freq}{A vector of strictly positive numbers that sum to \code{1}.
-The possible genotypes of the underlying genetic model are
-\code{1:length(geno_freq)}, and \code{geno_freq[j]} is interpreted as the population
-frequency of genotype \code{j}. For certain genetic models that often
-occur in applications, these genotype frequencies can be calculated by
-\code{\link{geno_freq_HWE}}.}
+If the possible genotypes of the underlying genetic model are
+\code{1:length(geno_freq)} then \code{geno_freq[j]} is interpreted as the population
+frequency of genotype \code{j}.
+For certain genetic models that often occur in applications, these genotype
+frequencies can be calculated by \code{\link{geno_freq_monogenic}},
+\code{\link{geno_freq_phased}}, etc.}
 
 \item{trans}{An \code{ngeno^2} by \code{ngeno} matrix of non-negative numbers whose rows
 all sum to \code{1}, where \code{ngeno = length(geno_freq)} is the number of possible
 genotypes.  The rows of \code{trans} correspond to joint parental
-genotypes and the columns to offspring genotypes.
-The element \code{trans[ngeno * gm + gf - ngeno, go]} is interpreted as the conditional
+genotypes and the columns correspond to offspring genotypes.
+If the possible genotypes are \code{1:length(geno_freq)} then the element
+\code{trans[ngeno * gm + gf - ngeno, go]} is interpreted as the conditional
 probability that a person has genotype \code{go}, given that his or her
 biological mother and father have genotypes \code{gm} and \code{gf}, respectively.
 For certain genetic models that often occur in applications,
-this transmission matrix can be calculated by \code{\link{trans_monogenic}}.}
+this transmission matrix can be calculated by \code{\link{trans_monogenic}},
+\code{\link{trans_phased}}, etc.}
 
-\item{penet}{An \code{nrow(dat)} by \code{length(geno_freq)} matrix of non-negative
+\item{penet}{An \code{nrow(fam)} by \code{length(geno_freq)} matrix of non-negative
 numbers. The element \code{penet[i,j]} is interpreted as the conditional
-probability of the phenotypes of the person corresponding to row \code{i} of
-\code{fam}, given that his or her genotype is \code{j}.
-Note that known genotype data can be incorporated into \code{penet} by regarding
-known genotypes as phenotypes, i.e. by regarding known genotypes as
-(possibly noisy) measurements of the underlying true genotypes.
-If any row of \code{penet} consists entirely of zeroes then the family's
-phenotypes are impossible, and \code{-Inf} is returned.}
+probability (or probability density) of the phenotype of the person
+corresponding to row \code{i} of \code{fam}, given that his or her genotype is \code{j}
+(where the possible genotypes are \code{1:length(geno_freq)}).
+Note that genotype data can be incorporated into \code{penet} by regarding
+observed genotypes as part of the phenotype, i.e. by regarding observed
+genotypes as (possibly noisy) measurements of the underlying true genotypes.
+For example, if the observed genotype of person \code{i} is \code{1}
+(and if genotype measurement error is negligible) then \code{penet[i,j]}
+should be \code{0} for \code{j != 1} and \code{penet[i,1]} should be the same as if
+person \code{i} were ungenotyped.}
+
+\item{monozyg}{An optional list that can be used to specify genetically
+identical persons, such as monozygotic twins, monozygotic triplets,
+a monozygotic pair within a set of dizygotic triplets, etc.
+Each element of the list should be a vector containing the individual
+identifiers of a group of genetically identical persons, e.g. if \code{fam}
+contains a set of monozygotic twins (and no other genetically identical
+persons) then \code{monozyg} will be a list
+with one element, and that element will be a vector of length two containing
+the individual identifiers of the twins.  The order of the list
+and the orders of its elements do not affect the output of the function.
+Each group of genetically identical persons should contain two or more
+persons, the groups should not overlap, and all persons in each group must
+have the same (non-missing) parents.}
 }
 \value{
-A vector of length \code{length(geno_freq)} whose \code{j}th element is
+A vector of length \code{length(geno_freq)}, whose \code{j}th element is
 the conditional probability that the target person has genotype \code{j},
-given the family's relationship structure and phenotypes.
+given the family's relationship structure and phenotypes.  A vector of \code{NA}s
+will be returned if a row of \code{penet} consists entirely of zeroes or if
+the pedigree is impossible for any other reason
+(after restricting \code{fam} and \code{penet} to the connected component of
+the pedigree containing \code{target}).
 }
 \description{
-For a given individual within a given family, calculate the person's
+For a chosen individual within a specified family, calculate the person's
 conditional genotype probabilities, given the family's phenotypes and
 relationship structure
 }
 \details{
 The genotype probabilities are calculated by essentially the same algorithm
-as the one that underlies \code{\link{pedigree_loglikelihood}};
-see there for details.
+as \code{\link{pedigree_loglikelihood}};
+see there for details.  The genotype probabilities only depend on the
+connected component of the pedigree that contains \code{target}, so the
+function first restricts \code{fam} and \code{penet} to the rows corresponding to this
+connected component.  For example, if \code{fam} is the union of two
+unrelated families then this function will restrict to the subfamily
+containing \code{target} before performing the calculation.
 }
 \examples{
 # Read in some sample data
@@ -74,8 +105,9 @@ str(penet_small)
 w <- which(dat_small$family == "ora")
 fam <- dat_small[w, -1]
 penet <- penet_small[w, ]
+monozyg <- list(c("ora024", "ora027"))  # ora024 and ora027 are identical twins
 trans <- trans_monogenic(2)
-geno_freq <- geno_freq_HWE(p_alleles = c(0.9, 0.1))
-genotype_probabilities(target_ID = "ora008", fam, geno_freq, trans, penet)
+geno_freq <- geno_freq_monogenic(p_alleles = c(0.9, 0.1))
+genotype_probabilities(target = "ora008", fam, geno_freq, trans, penet, monozyg)
 
 }

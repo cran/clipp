@@ -7,8 +7,8 @@
 \title{clipp: Calculate Likelihoods by Pedigree Paring}
 \description{
 \code{clipp} provides a fast and general implementation of the Elston-Stewart
-algorithm, and can calculate the log-likelihoods of large and complex pedigrees
-without loops.  General references for the Elston-Stewart algorithm are
+algorithm, and can calculate the log-likelihoods of large and complex pedigrees,
+including those with loops.  General references for the Elston-Stewart algorithm are
 (Elston & Stewart, 1971), (Lange & Elston, 1975) and (Cannings et al., 1978).
 }
 \details{
@@ -20,12 +20,14 @@ matrices for genetic models that often arise in applications.  The function
 \code{\link{genotype_probabilities}} calculates genotype probabilities
 for a target person within a family, given the family's phenotypes.
 
-The current implementation of \code{clipp} does not allow pedigree loops, such as
-those caused by inbreeding or by two sisters having children with two brothers
-from a different family (see (Totir et al., 2009) for a precise definition).
+The \code{clipp} package can handle pedigree loops, such as those
+caused by inbreeding or by two sisters having children with two brothers
+from an unrelated family (see (Totir et al., 2009) for a precise definition).
+However, pedigrees with more than a few loops could greatly reduce the speed
+of the calculation.
 
-It is feasible to apply \code{clipp} to very large families,
-e.g. in the examples for \code{\link{pedigree_loglikelihood}},
+It is feasible to apply \code{clipp} to very large families.  For instance,
+in the examples for \code{\link{pedigree_loglikelihood}},
 the log-likelihood of one family with approximately 10,000 members is calculated
 in less than one minute on a standard desktop computer.
 Numerical issues will eventually limit the family size,
@@ -57,4 +59,3 @@ Authors:
 }
 
 }
-\keyword{internal}

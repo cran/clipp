@@ -3,17 +3,19 @@
 \docType{data}
 \name{dat_small}
 \alias{dat_small}
-\title{Simulated data on 10 families with approximately 100 members each.}
+\title{Simulated data on 10 families with approximately 100 members each}
 \format{
-A data frame with 1018 rows (corresponding to persons) and 7 variables:
+A data frame with 1018 rows (corresponding to persons) and the
+following 7 variables:
 \describe{
-\item{family}{an identifier (ID) for the person's family}
-\item{indiv}{an ID for the person}
-\item{mother}{the individual ID of the person's mother}
-\item{father}{the individual ID of the person's father}
-\item{sex}{the person's sex (1 = male, 2 = female)}
-\item{aff}{the person's disease status (1 = case, 0 = control)}
-\item{age}{the person's age, in years}
+\item{\code{family}}{an identifier for each person's family}
+\item{\code{indiv}}{an individual identifier for each person}
+\item{\code{mother}}{the individual identifier of the person's mother}
+\item{\code{father}}{the individual identifier of the person's father}
+\item{\code{sex}}{the person's sex (1 = male, 2 = female)}
+\item{\code{aff}}{the person's disease status (1 = case, 0 = control)}
+\item{\code{age}}{the person's last known age in years (for controls) or
+age at diagnosis in years (for cases)}
 }
 }
 \source{

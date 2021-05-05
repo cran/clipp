@@ -9,6 +9,7 @@ pedigree_loglikelihood(
   geno_freq,
   trans,
   penet,
+  monozyg = NULL,
   sum_loglik = TRUE,
   ncores = 1
 )
@@ -21,8 +22,10 @@ but will be ignored), which will be coerced to \code{character} type:
 \item \code{family} (optional), an identifier for each person's family, constant
 within families.  If this variable is not supplied then \code{dat} will be
 treated as a single pedigree.
-\item \code{indiv}, an identifier for each individual person, with no duplicates
-across the dataset.
+\item \code{indiv}, an individual identifier for each person.  If there are any
+duplicated identifiers in the dataset then the family and an underscore
+(\verb{_}) will be prepended to all identifiers, and if any duplicates remain
+after this then the function will stop executing, with an error message.
 \item \code{mother}, the individual identifier of each person's mother, or missing
 (\code{NA}) for founders.
 \item \code{father}, the individual identifier of each person's father, or missing
@@ -30,34 +33,55 @@ across the dataset.
 }}
 
 \item{geno_freq}{A vector of strictly positive numbers that sum to \code{1}.
-The possible genotypes of the underlying genetic model are
-\code{1:length(geno_freq)}, and \code{geno_freq[j]} is interpreted as the population
+If the possible genotypes of the underlying genetic model are
+\code{1:length(geno_freq)} then \code{geno_freq[j]} is interpreted as the population
 frequency of genotype \code{j}, so \code{geno_freq} is essentially the
-function \code{Prior} of (Lange, 2002). For certain genetic models that often
-occur in applications, these genotype frequencies can be calculated by
-\code{\link{geno_freq_HWE}}.}
+function \code{Prior} in the pedigree likelihood on page 117 of (Lange, 2002).
+For certain genetic models that often occur in applications, these genotype
+frequencies can be calculated by \code{\link{geno_freq_monogenic}},
+\code{\link{geno_freq_phased}}, etc.}
 
 \item{trans}{An \code{ngeno^2} by \code{ngeno} matrix of non-negative numbers whose rows
 all sum to \code{1}, where \code{ngeno = length(geno_freq)} is the number of possible
 genotypes. The rows of \code{trans} correspond to joint parental genotypes and
-the columns to offspring genotypes.  The element
+the columns correspond to offspring genotypes.  If the possible genotypes
+are \code{1:length(geno_freq)} then the element
 \code{trans[ngeno * gm + gf - ngeno, go]} is interpreted as the conditional
 probability that a person has genotype \code{go}, given that his or her
 biological mother and father have genotypes \code{gm} and \code{gf}, respectively.
-So \code{trans} is essentially the transmission function \code{Tran} of (Lange, 2002).
-For certain genetic models that often occur in applications,
-this transmission matrix can be calculated by \code{\link{trans_monogenic}}.}
+So \code{trans} is essentially the transmission function \code{Tran} on page 117 of
+(Lange, 2002).  For certain genetic models that often occur in applications,
+this transmission matrix can be calculated by \code{\link{trans_monogenic}},
+\code{\link{trans_phased}}, etc.}
 
 \item{penet}{An \code{nrow(dat)} by \code{length(geno_freq)} matrix of non-negative
 numbers. The element \code{penet[i,j]} is interpreted as the conditional
-probability of the phenotypes of the person corresponding to row \code{i} of
-\code{dat}, given that his or her genotype is \code{j}.  So \code{penet} is essentially the
-penetrance function \code{Pen} of (Lange, 2002).
+probability (or probability density) of the phenotype of the person
+corresponding to row \code{i} of \code{dat}, given that his or her genotype is \code{j}
+(where the possible genotypes are \code{1:length(geno_freq)}).
+Therefore, \code{penet} is essentially the penetrance function \code{Pen} on page 117
+of (Lange, 2002).  If any row of \code{penet} consists entirely of zeroes then
+the likelihood is \code{0}, so the returned log-likelihood will be \code{-Inf}.
 Note that genotype data can be incorporated into \code{penet} by regarding
-known genotypes as phenotypes, i.e. by regarding known genotypes as
-(possibly noisy) measurements of the underlying true genotypes.
-If any row of \code{penet} consists entirely of zeroes then the likelihood is \code{0},
-so the returned log-likelihood is \code{-Inf}.}
+observed genotypes as part of the phenotype, i.e. by regarding observed
+genotypes as (possibly noisy) measurements of the underlying true genotypes.
+For example, if the observed genotype of person \code{i} is \code{1}
+(and if genotype measurement error is negligible) then \code{penet[i,j]}
+should be \code{0} for \code{j != 1} and \code{penet[i,1]} should be the same as if
+person \code{i} were ungenotyped.}
+
+\item{monozyg}{An optional list that can be used to specify genetically
+identical persons, such as monozygotic twins, monozygotic triplets,
+a monozygotic pair within a set of dizygotic triplets, etc.
+Each element of the list should be a vector containing the individual
+identifiers of a group of genetically identical persons, e.g. if \code{dat}
+contains six sets of monozygotic twins and one set of monozygotic triplets
+then \code{monozyg} will be a list with seven elements, one element a vector of length
+three and the other six elements all vectors of length two. The order of the list and
+the orders within its elements do not affect the output of the function.
+Each group of genetically identical persons should contain two or more
+persons, the groups should not overlap, and all persons in each group must
+have the same (non-missing) parents.}
 
 \item{sum_loglik}{A logical flag.  Return a named vector giving the
 log-likelihood of each family if \code{sum_loglik} is \code{FALSE}, or return the sum
@@ -74,46 +98,64 @@ or the sum of these log-likelihoods, depending on \code{sum_loglik} (see above).
 }
 \description{
 For one or more pedigrees, this function calculates the natural logarithm of
-the pedigree likelihood on page 117 of (Lange, 2002), given inputs that
-correspond to the terms in this formula.
+the pedigree likelihood that is on page 117 of (Lange, 2002), given inputs
+that correspond to the terms in this formula.
 }
 \details{
 This function provides a fast and general implementation of the
-Elston-Stewart algorithm to calculate the log-likelihoods of large and
-complex pedigrees without loops.  General references for the Elston-Stewart
+Elston-Stewart algorithm to calculate the log-likelihoods of potentially
+large and complex pedigrees.  General references for the Elston-Stewart
 algorithm are (Elston & Stewart, 1971), (Lange & Elston, 1975) and
 (Cannings et al., 1978).
 
 Each family within \code{dat} should be a complete pedigree, meaning that each
-non-missing mother or father ID should correspond to a row, and each person
-should either have both parental IDs missing (if a founder) or non-missing
-(if a non-founder).  No family should contain pedigree loops, such as those
+person should either have both parental identifiers missing (if a founder)
+or both non-missing (if a non-founder), and each (non-missing) mother or
+father should have a corresponding row of \code{dat}.
+
+Observed genotypes should be incorporated into \code{penet}, as described above.
+
+The function can handle pedigree loops, such as those
 caused by inbreeding or by two sisters having children with two brothers
-from a different family; see (Totir et al., 2009) for a precise definition.
-The code is not currently suitable for families containing identical twins,
-since these are not distinguished from full siblings.
+from an unrelated family (see (Totir et al., 2009) for a precise definition),
+though pedigrees with more than a few loops could greatly reduce the speed of
+the calculation.
 
 In \code{geno_freq}, \code{trans} and \code{penet}, the order of the possible genotypes
-must match (so that the same genotype corresponds to element \code{j} of \code{geno_freq}
-and column \code{j} of \code{trans} and \code{penet}, for each \code{j} in \code{1:length(geno_freq)}).
+must match, in the sense that the genotype that corresponds to element \code{j}
+of \code{geno_freq} must also correspond to column \code{j} of \code{trans} and \code{penet},
+for each \code{j} in \code{1:length(geno_freq)}.
+
+Sex-specific genetics, such as X-linked genes or genetic loci with sex-specific
+recombination fractions, can be modelled by letting genotypes \code{1:nm} be
+the possible male genotypes and letting \code{(nm+1):(nm+nf)} be the possible
+female genotypes, where \code{nm} and \code{nf} are the number of possible genotypes
+for males and females, respectively.  Then, for example, \code{penet[i,j]} will
+be \code{0} if \code{j \%in\% 1:nm} and row \code{i} of \code{dat} corresponds to a female, and
+\code{penet[i,j]} will be \code{0} if \code{j \%in\% (nm+1):(nm+nf)} and row \code{i} of
+\code{dat} corresponds to a male.
 }
 \examples{
 # Load pedigree files and penetrance matrices
 data("dat_small", "penet_small", "dat_large", "penet_large")
 
-# Settings for a biallelic locus in Hardy-Weinberg equilibrium and with a
-# minor allele frequency of 10\%
-geno_freq <- geno_freq_HWE(c(0.9, 0.1))
+# Settings for a single biallelic locus in Hardy-Weinberg equilibrium
+# and with a minor allele frequency of 10\%
+geno_freq <- geno_freq_monogenic(c(0.9, 0.1))
 trans <- trans_monogenic(2)
 
-# Calculate the log-likelihoods for 10 families, each with approximately 100 family members
+# In dat_small, ora024 and ora027 are identical twins, and so are aey063 and aey064
+monozyg_small <- list(c("ora024", "ora027"), c("aey063", "aey064"))
+
+# Calculate the log-likelihoods for 10 families, each with approximately
+# 100 family members
 pedigree_loglikelihood(
-  dat_small, geno_freq, trans, penet_small, sum_loglik = FALSE, ncores = 2
+  dat_small, geno_freq, trans, penet_small, monozyg_small, sum_loglik = FALSE, ncores = 2
 )
 
 # Calculate the log-likelihood for one family with approximately 10,000 family members
-# Note:  this calculation takes approximately one minute on a standard desktop computer
-# Note:  parallelization achieves nothing here because there is only one family
+# Note:  this calculation should take less than a minute on a standard desktop computer
+# Note:  parallelization would achieve nothing here because there is only one family
 str(dat_large)
 \donttest{
 system.time(

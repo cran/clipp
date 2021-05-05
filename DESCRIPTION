@@ -1,7 +1,7 @@
 Package: clipp
 Type: Package
 Title: Calculating Likelihoods by Pedigree Paring
-Version: 0.1.0
+Version: 1.0.0
 Authors@R: 
   c(person(given = "James",
            family = "Dowty",
@@ -12,7 +12,7 @@ Authors@R:
            role = c("aut"),
            email = "wongck.kevin@gmail.com"))
 Description: A fast and general implementation of the Elston-Stewart algorithm
- that can calculate the likelihoods of large and complex pedigrees without loops. 
+ that can calculate the likelihoods of large and complex pedigrees. 
  References for the Elston-Stewart algorithm are
  Elston & Stewart (1971) <doi:10.1159/000152448>,
  Lange & Elston (1975) <doi:10.1159/000152714> and
@@ -23,9 +23,9 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.0
 NeedsCompilation: no
-Packaged: 2020-07-06 10:01:31 UTC; jdowty
+Packaged: 2021-05-05 07:17:09 UTC; jdowty
 Author: James Dowty [aut, cre],
   Kevin Wong [aut]
 Maintainer: James Dowty <jgdowty@gmail.com>
 Repository: CRAN
-Date/Publication: 2020-07-06 14:00:02 UTC
+Date/Publication: 2021-05-05 07:30:03 UTC

@@ -17,10 +17,10 @@ penet_small
 \description{
 A matrix relating the phenotypes of \code{dat_small} to the three unphased
 genotypes of a single biallelic, autosomal genetic locus.
-The element \code{penet_small[i,j]} is the conditional probability of the
+The element \code{penet_small[i,j]} is the conditional probability of
 the phenotypes (i.e. \code{sex}, \code{aff} and \code{age}) of the person
 in row \code{i} of \code{dat_small}, given that
 his or her genotype is \code{j} (here labelling the genotypes as \verb{1, 2, 3},
-where genotype \code{2} is the heterozygous genotype)
+where genotype \code{2} is the heterozygous genotype).
 }
 \keyword{datasets}
