@@ -1,4 +1,4 @@
-21fac85b86f6e4357bd9e078cda53dac *DESCRIPTION
+57d2a737d370e4d1da3bd3bcdd419056 *DESCRIPTION
 43c5e8e551b6e2db254ead153ee14b12 *NAMESPACE
 683ccaccc0ad51c20b47a56870fd464d *R/check_dat.R
 10dcb35a841acda6dca9b8fb3e4bea36 *R/clipp-package.R
@@ -10,8 +10,8 @@ ca3132eb864d320c09af616f995c4626 *R/geno_freq_monogenic.R
 de9a2ee803fa99c40b20f186df988bf2 *R/geno_freq_phased.R
 e826a81f28dc9c253909514213d0b43c *R/geno_freq_polygenic.R
 24df18fa237dd4b38dc7fa8a57715902 *R/genotype_probabilities.R
-4dc9d68b67aeb3b86a767dd510770312 *R/pedigree_loglikelihood.R
-de9b34b4a988ad6fba9ee58a4a844f26 *R/pedigree_loglikelihood_g.R
+492f3655ffff09de275c7f4d17c3cadb *R/pedigree_loglikelihood.R
+c50bd5d5783be91fb4a1daf652110bc4 *R/pedigree_loglikelihood_g.R
 dda93820c487b3d2ed75e357462421a7 *R/penet_large.R
 725f2fd30c780516cb033d5e43adad52 *R/penet_small.R
 25f2c4d9648c062122c8e9cccd246343 *R/trans_monogenic.R

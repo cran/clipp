@@ -222,6 +222,7 @@ pedigree_loglikelihood <- function(dat, geno_freq, trans, penet, monozyg = NULL,
     keep <- which(dat$family == famID)
     fam <- dat[keep, -1]
     peneti <- penet[keep, ]
+    if (length(keep) == 1)  peneti <- matrix(peneti, 1, )
     fam_penet_list[[i]] <- list(
       fam = fam,
       penet = peneti

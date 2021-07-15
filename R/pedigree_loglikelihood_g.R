@@ -97,14 +97,17 @@ pedigree_loglikelihood_g <- function(fam_penet, geno_freq, trans, target_id = NU
       m
       return(m)
     }
-    st <- lapply(1:length(slist), f3)
-    sibedges <- c()
-    for (j in 1:length(st)) sibedges <- rbind(sibedges, st[[j]])
+    sibedges <- matrix(numeric(0), 0, 3)
+    if (length(slist) != 0) {
+      st <- lapply(1:length(slist), f3)
+      for (j in 1:length(st)) sibedges <- rbind(sibedges, st[[j]])
+    }
 
     # Add a self-edge for each isolated sibship
     iso <- setdiff(1:length(sibships), c(sibedges[,1], sibedges[,2]))
     if (length(iso) > 0)  {
-      sibedges <- rbind(sibedges, matrix(c(iso,iso,-1),length(iso),3))
+      x <- c(iso, iso, rep(-1,length(iso)))
+      sibedges <- rbind(sibedges, matrix(x, length(iso), 3))
     }
 
     # Clean up and output
