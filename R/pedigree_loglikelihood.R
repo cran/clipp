@@ -80,6 +80,12 @@
 #' the `parallel` package is used to parallelize the calculation by dividing
 #' the pedigrees among the different cores.
 #'
+#' @param load_balancing A logical flag.  When `ncores > 1`, parallelization is
+#' achieved either with the function `parallel::parLapply` (if `load_balancing`
+#' is `FALSE`) or with the load-balancing function `parallel::parLapplyLB`
+#' (if `load_balancing` is `TRUE`, the default). The load-balancing version
+#' will usually, but not always, be faster.
+#'
 #' @details
 #' This function provides a fast and general implementation of the
 #' Elston-Stewart algorithm to calculate the log-likelihoods of potentially
@@ -166,7 +172,7 @@
 #' Genet Sel Evol. 2009;41(1):52.
 #'
 pedigree_loglikelihood <- function(dat, geno_freq, trans, penet, monozyg = NULL,
-                                   sum_loglik = TRUE, ncores = 1) {
+                                   sum_loglik = TRUE, ncores = 1, load_balancing = TRUE) {
 
   #check_dat(dat)
 
@@ -237,9 +243,15 @@ pedigree_loglikelihood <- function(dat, geno_freq, trans, penet, monozyg = NULL,
   } else {
     cl <- parallel::makeCluster(ncores)
     on.exit(parallel::stopCluster(cl), add = TRUE)
-    ll <- parallel::parLapply(
-      cl = cl, X = fam_penet_list, fun = pedigree_loglikelihood_g,
-      geno_freq = geno_freq, trans = trans)
+    if (load_balancing) {
+      ll <- parallel::parLapplyLB(
+        cl = cl, X = fam_penet_list, fun = pedigree_loglikelihood_g,
+        geno_freq = geno_freq, trans = trans)
+    } else {
+      ll <- parallel::parLapply(
+        cl = cl, X = fam_penet_list, fun = pedigree_loglikelihood_g,
+        geno_freq = geno_freq, trans = trans)
+    }
   }
 
   ll <- unlist(ll)

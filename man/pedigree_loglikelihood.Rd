@@ -11,7 +11,8 @@ pedigree_loglikelihood(
   penet,
   monozyg = NULL,
   sum_loglik = TRUE,
-  ncores = 1
+  ncores = 1,
+  load_balancing = TRUE
 )
 }
 \arguments{
@@ -91,6 +92,12 @@ of these log-likelihoods if \code{sum_loglik} is \code{TRUE} (the default).}
 default) corresponding to non-parallel computing.  When \code{ncores > 1},
 the \code{parallel} package is used to parallelize the calculation by dividing
 the pedigrees among the different cores.}
+
+\item{load_balancing}{A logical flag.  When \code{ncores > 1}, parallelization is
+achieved either with the function \code{parallel::parLapply} (if \code{load_balancing}
+is \code{FALSE}) or with the load-balancing function \code{parallel::parLapplyLB}
+(if \code{load_balancing} is \code{TRUE}, the default). The load-balancing version
+will usually, but not always, be faster.}
 }
 \value{
 Either a named vector giving the log-likelihood of each family
