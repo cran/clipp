@@ -1,7 +1,7 @@
 check_dat <- function(dat) {
 
   # Check if the input is a data.frame
-  if (class(dat) != "data.frame") {
+  if (!is.data.frame(dat)) {
     #stop(paste0(deparse(substitute(dat)), " is not a data.frame"))
     stop(sprintf("%s is not a data.frame", deparse(substitute(dat))),
          call. = FALSE)

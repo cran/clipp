@@ -14,6 +14,7 @@
 #'   \item{`aff`}{the person's disease status (1 = case, 0 = control)}
 #'   \item{`age`}{the person's last known age in years (for controls) or
 #'   age at diagnosis in years (for cases)}
+#'   \item{`geno`}{the person's genotype, or blank (`""`) if not known}
 #' }
 #' @source Simulated
 "dat_small"

@@ -16,6 +16,7 @@ following 7 variables:
 \item{\code{aff}}{the person's disease status (1 = case, 0 = control)}
 \item{\code{age}}{the person's last known age in years (for controls) or
 age at diagnosis in years (for cases)}
+\item{\code{geno}}{the person's genotype, or blank (\code{""}) if not known}
 }
 }
 \source{
